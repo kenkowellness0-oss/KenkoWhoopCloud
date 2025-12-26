@@ -1,0 +1,46 @@
+name: WHOOP Daily Automation
+
+on:
+  schedule:
+    - cron: "30 2 * * *"  # 8AM IST every day
+  workflow_dispatch: # Allow manual run anytime
+
+jobs:
+  run-automation:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install Chrome
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
+    - name: Install ChromeDriver
+      run: |
+        CHROME_VERSION=$(google-chrome --version | sed 's/Google Chrome //')
+        CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d. -f1)
+        DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR")
+        wget "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
+        unzip chromedriver_linux64.zip
+        sudo mv chromedriver /usr/local/bin/
+        sudo chmod +x /usr/local/bin/chromedriver
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run automation
+      env:
+        WHOOP_EMAIL: ${{ secrets.WHOOP_EMAIL }}
+        WHOOP_PASSWORD: ${{ secrets.WHOOP_PASSWORD }}
+        WHATSAPP_URL: ${{ secrets.WHATSAPP_URL }}
+        WHATSAPP_KEY: ${{ secrets.WHATSAPP_KEY }}
+        PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
+      run: python3 main.py
