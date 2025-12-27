@@ -1,22 +1,19 @@
-import os
 import requests
 import json
 
-WHATSAPP_URL = os.getenv("WHATSAPP_URL")
-WHATSAPP_API_KEY = os.getenv("WHATSAPP_API_KEY")
-WHATSAPP_PHONE = os.getenv("WHATSAPP_PHONE")
-
-headers = {
-    "Authorization": f"Bearer {WHATSAPP_API_KEY}",
-    "Content-Type": "application/json"
-}
+url = "https://your-base-url.com/api/send"  # replace {{base_url}}
 
 payload = {
-    "phone": f"+{WHATSAPP_PHONE}",
-    "message": "🚀 Automated report from GitHub Actions — WhatsApp Test Successful!"
+    "phone": "+19680825846",  # use only digits with country code if your API requires that
+    "message": "Hello John, how are you?"
 }
 
-response = requests.post(WHATSAPP_URL, headers=headers, json=payload)
+headers = {
+    "Content-Type": "application/json"
+    # add auth headers here, e.g. "x-api-key": "YOUR_KEY"
+}
 
-print("Status:", response.status_code)
-print("Response:", response.text)
+response = requests.post(url, headers=headers, json=payload)
+
+print(response.status_code)
+print(response.text)
