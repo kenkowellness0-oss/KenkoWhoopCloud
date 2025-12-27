@@ -7,13 +7,13 @@ WHATSAPP_API_KEY = os.getenv("WHATSAPP_API_KEY")
 WHATSAPP_PHONE = os.getenv("WHATSAPP_PHONE")
 
 headers = {
-Authorization: f"Bearer {WHATSAPP_API_KEY}",
-Content-Type: "application/json"
+    "Authorization": f"Bearer {WHATSAPP_API_KEY}",
+    "Content-Type": "application/json"
 }
 
 payload = {
-phone: f"+{WHATSAPP_PHONE}",
-message: "🚀 Automated report system test successful via GitHub Actions!"
+    "phone": f"+{WHATSAPP_PHONE}",
+    "message": "🚀 Automated report from GitHub Actions — WhatsApp Test Successful!"
 }
 
 response = requests.post(WHATSAPP_URL, headers=headers, json=payload)
