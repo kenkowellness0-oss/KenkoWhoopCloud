@@ -26,6 +26,6 @@ jobs:
         WHOOP_EMAIL: ${{ secrets.WHOOP_EMAIL }}
         WHOOP_PASSWORD: ${{ secrets.WHOOP_PASSWORD }}
         WHATSAPP_URL: ${{ secrets.WHATSAPP_URL }}
-        WHATSAPP_KEY: ${{ secrets.WHATSAPP_KEY }}
+        WHATSAPP_API_KEY: ${{ secrets.WHATSAPP_KEY }}
         PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
       run: python main.py
