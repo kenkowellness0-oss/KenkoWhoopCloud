@@ -1,20 +1,3 @@
-import requests
-import json
-
-url = "https://wa.nyife.chat/api/send"  # replace {{base_url}}
-
-payload = {
-    "phone": "+918999135150",  # use only digits with country code if your API requires that
-    "message": "Hello John, how are you?"
-}
-
-headers = {
-    "Content-Type": "application/json"
-    # add auth headers here, e.g. "x-api-key": "YOUR_KEY"
-}
-
-response = requests.post(url, headers=headers, json=payload)
-
-print(response.status_code)
-print(response.text)
+import os
+print("WHATSAPP_API_KEY:", repr(os.getenv("WHATSAPP_API_KEY")))
 
