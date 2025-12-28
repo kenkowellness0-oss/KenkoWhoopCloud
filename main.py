@@ -2,29 +2,19 @@ import os
 import requests
 import json
 
-# Get secrets from GitHub Actions
 WHATSAPP_URL = os.getenv("WHATSAPP_URL")
 WHATSAPP_API_KEY = os.getenv("WHATSAPP_API_KEY")
 PHONE_NUMBER = os.getenv("PHONE_NUMBER")
 
-# Debug - what we received (remove after testing)
-print("WHATSAPP_URL:", repr(WHATSAPP_URL))
-print("WHATSAPP_API_KEY:", repr(WHATSAPP_API_KEY[:10]) + "..." if WHATSAPP_API_KEY else "MISSING")
-print("PHONE_NUMBER:", repr(PHONE_NUMBER))
+print("Raw PHONE_NUMBER:", repr(PHONE_NUMBER))
 
-print("Sending WhatsApp message...")
-
-# Fix URL automatically (handles both cases)
-if WHATSAPP_URL:
-    if WHATSAPP_URL.endswith('/api/send'):
-        full_url = WHATSAPP_URL
-    else:
-        full_url = f"{WHATSAPP_URL.rstrip('/')}/api/send"
+# Fix Indian number format: 91xxxxxxxxxx → +91xxxxxxxxxx
+if PHONE_NUMBER and PHONE_NUMBER.startswith('91'):
+    clean_phone = '+' + PHONE_NUMBER  # Add +91 prefix
 else:
-    print("ERROR: WHATSAPP_URL is missing!")
-    exit(1)
+    clean_phone = PHONE_NUMBER
 
-print("Using URL:", full_url)
+print("WhatsApp phone:", clean_phone)
 
 headers = {
     "Authorization": f"Bearer {WHATSAPP_API_KEY}",
@@ -32,9 +22,14 @@ headers = {
 }
 
 payload = {
-    "phone": PHONE_NUMBER,
-    "message": "🚀 Testing WhatsApp API from GitHub Actions! ✔"
+    "phone": clean_phone,  # ← +91989913****
+    "message": "✅ WhatsApp from GitHub Actions - SUCCESS!"
 }
+
+if not WHATSAPP_URL.endswith('/api/send'):
+    full_url = f"{WHATSAPP_URL.rstrip('/')}/api/send"
+else:
+    full_url = WHATSAPP_URL
 
 response = requests.post(full_url, headers=headers, json=payload)
 
