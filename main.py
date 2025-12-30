@@ -31,7 +31,7 @@ sleep = 7.2
 payload = {	
 phone: PHONE,	
 template: {	
-name: "daily_wellness_update",  # approved template	
+name: "29dec",  # approved template	
 language: {"code": "en"},	
 components: [	
 {	
@@ -51,3 +51,4 @@ parameters: [
 response = requests.post(template_url, headers=headers, json=payload)	
 print("Status:", response.status_code)	
 print("Response:", response.text)	
+
