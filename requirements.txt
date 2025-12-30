@@ -1,4 +1,11 @@
 selenium
 requests
 python-dotenv
+apscheduler
+pytz
 pillow
+
+
+
+
+
