@@ -1,27 +1,23 @@
 import os
 import requests
 
-WHATSAPP_URL = os.getenv("WHATSAPP_URL")
 API_KEY = os.getenv("WHATSAPP_API_KEY")
 PHONE = os.getenv("PHONE_NUMBER")
 
-if PHONE.startswith("91"):
+# Fix Indian phone format
+if PHONE and PHONE.startswith("91"):
     PHONE = "+" + PHONE
 
-# SMART URL FIX for template endpoint
-if "/api/send" in WHATSAPP_URL:
-    template_url = WHATSAPP_URL.replace("/api/send", "/api/send/template")
-else:
-    template_url = f"{WHATSAPP_URL.rstrip('/')}/api/send/template"
-
-print("Using URL:", template_url)
+BASE_URL = "https://wa.nyife.chat"
+template_url = f"{BASE_URL}/api/send/template"
+print("Template URL:", template_url)
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
     "Content-Type": "application/json",
 }
 
-# TODO: replace with real WHOOP values
+# Example WHOOP values – replace with real ones
 name = "Himanshu"
 recovery = 78
 hrv = 85
@@ -31,17 +27,17 @@ sleep = 7.2
 payload = {
     "phone": PHONE,
     "template": {
-        "name": "daily_wellness_update",  # approved template
+        "name": "report1",      # EXACT template name from dashboard
         "language": {"code": "en"},
         "components": [
             {
                 "type": "body",
                 "parameters": [
-                    {"type": "text", "text": str(name)},
-                    {"type": "text", "text": str(recovery)},
-                    {"type": "text", "text": str(hrv)},
-                    {"type": "text", "text": str(rhr)},
-                    {"type": "text", "text": str(sleep)},
+                    {"type": "text", "text": str(name)},      # {{1}}
+                    {"type": "text", "text": str(recovery)},  # {{2}}
+                    {"type": "text", "text": str(hrv)},       # {{3}}
+                    {"type": "text", "text": str(rhr)},       # {{4}}
+                    {"type": "text", "text": str(sleep)},     # {{5}}
                 ],
             }
         ],
