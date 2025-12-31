@@ -31,33 +31,39 @@ def fetch_whoop_data():
         try:
             print("STEP 2️⃣ Opening WHOOP login page...")
             page.goto("https://account.whoop.com/login", timeout=60000)
+
+            # Wait for login inputs to appear
             page.wait_for_selector('input[type="email"]', timeout=30000)
 
-            # Updated Selectors
+            # Debug screenshot: before login
+            page.screenshot(path="before_login.png")
+            print("📸 Saved → before_login.png")
+
+            print("STEP 3️⃣ Filling login details...")
             page.fill('input[type="email"]', WHOOP_EMAIL)
             page.fill('input[type="password"]', WHOOP_PASSWORD)
             page.click('button:has-text("Log In")')
 
-            print("STEP 3️⃣ Waiting after login...")
+            print("STEP 4️⃣ Waiting after login...")
             page.wait_for_timeout(15000)
 
-            # Debug screenshot *after login*
+            # Screenshot after login
             page.screenshot(path="login_page.png")
-            print("📸 Saved login screenshot → login_page.png")
+            print("📸 Saved → login_page.png")
 
-            print("STEP 4️⃣ Navigating to Performance page...")
+            print("STEP 5️⃣ Navigating to Performance page...")
             page.goto("https://app.whoop.com/performance", timeout=60000)
-            page.wait_for_timeout(10000)
+            page.wait_for_timeout(12000)
 
-            print("STEP 5️⃣ Scraping metrics...")
+            print("STEP 6️⃣ Scraping metrics...")
 
-            # Capture full HTML for selector debugging
+            # Save HTML for debugging
             html = page.content()
             with open("debug_page.html", "w", encoding="utf-8") as f:
                 f.write(html)
-            print("📄 Saved WHOOP HTML → debug_page.html")
+            print("📄 Saved → debug_page.html")
 
-            # TEMP fallback selectors — will adjust once we see HTML
+            # TEMP fallback selectors
             recovery = page.locator("text=Recovery").locator("xpath=..//span").last.inner_text().replace("%", "")
             hrv = page.locator("text=HRV").locator("xpath=..//span").nth(1).inner_text()
             rhr = page.locator("text=RHR").locator("xpath=..//span").nth(1).inner_text()
@@ -66,24 +72,24 @@ def fetch_whoop_data():
             strain = page.locator("text=Strain").locator("xpath=..//span").nth(1).inner_text()
 
             browser.close()
-            print("STEP 6️⃣ WHOOP Data Fetch Success ✓")
+            print("STEP 7️⃣ WHOOP Data Fetch Success ✓")
 
             return recovery, hrv, rhr, sleep, deep_sleep, strain
 
         except Exception as e:
             print("❌ ERROR: Scraping failed:", str(e))
             page.screenshot(path="error_screenshot.png")
-            print("📸 Saved error screenshot → error_screenshot.png")
+            print("📸 Saved → error_screenshot.png")
             browser.close()
             return None
 
 
 def send_whatsapp(values):
     if values is None:
-        print("⚠️ WhatsApp not sent (No WHOOP data)")
+        print("⚠️ WhatsApp not sent — No WHOOP data.")
         return
     
-    print("STEP 7️⃣ Sending WhatsApp message...")
+    print("STEP 8️⃣ Sending WhatsApp message...")
 
     recovery, hrv, rhr, sleep, deep_sleep, strain = values
 
@@ -120,6 +126,5 @@ def job():
     print("\n====== Job Finished ======\n")
 
 
-# Test mode: Run WHOOP once and exit
+# Test mode — Run once and exit
 job()
-
