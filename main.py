@@ -5,116 +5,104 @@ import requests
 from datetime import datetime
 import pytz
 from apscheduler.schedulers.blocking import BlockingScheduler
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# WhatsApp Gateway ENV Vars
+# WhatsApp API ENV Vars
 WHATSAPP_URL = os.getenv("WHATSAPP_URL")
 WHATSAPP_API_KEY = os.getenv("WHATSAPP_API_KEY")
 PHONE_NUMBER = os.getenv("PHONE_NUMBER")
 
-# WHOOP Login Creds
+# WHOOP Credentials
 WHOOP_EMAIL = os.getenv("WHOOP_EMAIL")
 WHOOP_PASSWORD = os.getenv("WHOOP_PASSWORD")
 
 def fetch_whoop_data():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--window-size=1920,1080")
+    print("STEP 1: Launching browser...")
 
-   
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
 
-    service = Service("/usr/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+        try:
+            print("STEP 2: Opening WHOOP login page...")
+            page.goto("https://app.whoop.com/login", timeout=60000)
+            
+            page.fill('input[name="email"]', WHOOP_EMAIL)
+            page.fill('input[name="password"]', WHOOP_PASSWORD)
+            page.click('button[type="submit"]')
 
+            print("STEP 3: Logging in...")
+            page.wait_for_timeout(12000)
 
-    try:
-        # Login
-        driver.get("https://app.whoop.com/login")
-        time.sleep(6)
+            print("STEP 4: Navigating to Performance page...")
+            page.goto("https://app.whoop.com/performance", timeout=60000)
+            page.wait_for_timeout(10000)
 
-        driver.find_element(By.NAME, "email").send_keys(WHOOP_EMAIL)
-        driver.find_element(By.NAME, "password").send_keys(WHOOP_PASSWORD)
-        driver.find_element(By.TAG_NAME, "button").click()
-        time.sleep(10)
+            print("STEP 5: Scraping metrics...")
 
-        driver.get("https://app.whoop.com/performance")
-        time.sleep(8)
+            # TEMP fallback generic selectors
+            recovery = page.locator("text=Recovery").locator("xpath=..//span").last.inner_text().replace("%","")
+            hrv = page.locator("text=HRV").locator("xpath=..//span").nth(1).inner_text()
+            rhr = page.locator("text=RHR").locator("xpath=..//span").nth(1).inner_text()
+            sleep = page.locator("text=Sleep").locator("xpath=..//span").nth(1).inner_text()
+            deep_sleep = page.locator("text=Deep").locator("xpath=..//span").nth(1).inner_text()
+            strain = page.locator("text=Strain").locator("xpath=..//span").nth(1).inner_text()
 
-        # Scrape WHOOP data
-        recovery = driver.find_element(By.XPATH, "//span[contains(@class,'recovery')]").text.replace("%", "")
-        hrv = driver.find_element(By.XPATH, "//span[contains(@class,'hrv')]").text.replace("ms", "")
-        rhr = driver.find_element(By.XPATH, "//span[contains(@class,'rhr')]").text.replace("bpm", "")
-        sleep = driver.find_element(By.XPATH, "//span[contains(@class,'sleep-duration')]").text.replace("h", "")
-        deep_sleep = driver.find_element(By.XPATH, "//span[contains(@class,'deep')]").text.replace("h", "")
-        strain = driver.find_element(By.XPATH, "//span[contains(@class,'strain')]").text
+            print("STEP 6: Data Fetch Success ✓")
+            browser.close()
 
-        # Recommendation logic
-        rec_val = float(recovery)
-        if rec_val > 70:
-            rec = "High performance day. Push training."
-        elif rec_val > 40:
-            rec = "Balanced day. Maintain consistency."
-        else:
-            rec = "Recovery day. Prioritize hydration and rest."
+            return recovery, hrv, rhr, sleep, deep_sleep, strain
 
-        return recovery, hrv, rhr, sleep, deep_sleep, strain, rec
-
-    except Exception as e:
-        print("Scrape Error:", e)
-        return None
-
-    finally:
-        driver.quit()
+        except Exception as e:
+            print("❌ ERROR: Scraping failed:", str(e))
+            page.screenshot(path="error_screenshot.png")
+            print("📸 Saved error screenshot → error_screenshot.png")
+            browser.close()
+            return None
 
 
-def send_message(data):
-    recovery, hrv, rhr, sleep, deep_sleep, strain, rec = data
+def send_whatsapp(values):
+    if values is None:
+        return
+    
+    print("STEP 7: Sending WhatsApp message...")
 
-    clean_phone = f"+{PHONE_NUMBER.lstrip('+')}"
-    print("Loaded PHONE_NUMBER:", PHONE_NUMBER)
-    print("Clean phone value:", clean_phone)
+    recovery, hrv, rhr, sleep, deep_sleep, strain = values
+
+    payload = {
+        "phone": PHONE_NUMBER,
+        "template_name": "performance_update",
+        "language": "en_US",
+        "variables": [
+            "Kenko User",
+            str(recovery),
+            str(hrv),
+            str(rhr),
+            str(sleep),
+            str(deep_sleep),
+            str(strain),
+            "Keep up the amazing progress!"
+        ]
+    }
+
     headers = {
         "Authorization": f"Bearer {WHATSAPP_API_KEY}",
         "Content-Type": "application/json"
     }
 
-    payload = {
-        "phone": clean_phone,
-        "template_name": "29dec",
-        "language": "en",
-        "params": [
-            "Athlete",
-            recovery,
-            hrv,
-            rhr,
-            sleep,
-            deep_sleep,
-            strain,
-            rec
-        ]
-    }
-
-    url = WHATSAPP_URL.rstrip('/') + "/api/send"
-    resp = requests.post(url, headers=headers, json=payload)
-
-    print("WhatsApp Status:", resp.status_code)
-    print("WhatsApp Response:", resp.text)
+    response = requests.post(WHATSAPP_URL, json=payload, headers=headers)
+    print("WhatsApp Status:", response.status_code)
+    print("WhatsApp Response:", response.text)
 
 
 def job():
-    print("\n--- Running WHOOP Automation Job ---")
-    data = fetch_whoop_data()
-    if data:
-        send_message(data)
-    print("--- Job Completed ---\n")
+    print("\n--- Running WHOOP Automation Job ---\n")
+    values = fetch_whoop_data()
+    send_whatsapp(values)
+    print("--- Job Finished ---\n")
 
 
 scheduler = BlockingScheduler()
@@ -122,9 +110,5 @@ ist = pytz.timezone("Asia/Kolkata")
 scheduler.add_job(job, 'cron', hour=7, minute=0, timezone=ist)
 
 print("Automation Scheduler Active — waiting for 7:00 AM IST...")
-job()  # Run once immediately to test everything
+job()  # Immediate test run
 scheduler.start()
-
-
-
-
