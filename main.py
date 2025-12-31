@@ -89,7 +89,7 @@ def send_message(data):
     payload = {
         "phone": clean_phone,
         "template_name": "29dec",
-        "language": "en_US",
+        "language": "en",
         "params": [
             "Athlete",
             recovery,
@@ -124,6 +124,7 @@ scheduler.add_job(job, 'cron', hour=7, minute=0, timezone=ist)
 print("Automation Scheduler Active — waiting for 7:00 AM IST...")
 job()  # Run once immediately to test everything
 scheduler.start()
+
 
 
 
