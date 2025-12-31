@@ -2,11 +2,11 @@ name: WHOOP Daily WhatsApp Automation
 
 on:
   schedule:
-    - cron: "30 1 * * *"   # 7:00 AM IST (1:30 UTC)
-  workflow_dispatch:        # Manual trigger button
+    - cron: "30 1 * * *"   # Runs every day at 7:00 AM IST (1:30 UTC)
+  workflow_dispatch:        # Allows manual run
 
 jobs:
-  whoop-report:
+  whoop-automation:
     runs-on: ubuntu-latest
 
     env:
@@ -17,34 +17,65 @@ jobs:
       WHOOP_PASSWORD: ${{ secrets.WHOOP_PASSWORD }}
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Python
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    - name: Install Dependencies
+    - name: Install Required System Dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install -y \
+          libnss3 \
+          libatk1.0-0 \
+          libatk-bridge2.0-0 \
+          libcups2 \
+          libdrm2 \
+          libxkbcommon0 \
+          libxcomposite1 \
+          libxdamage1 \
+          libxrandr2 \
+          libgbm1 \
+          libasound2 \
+          libpangocairo-1.0-0 \
+          libpango-1.0-0 \
+          libcairo2 \
+          libgtk-3-0 \
+          fonts-liberation \
+          xvfb \
+          wget \
+          curl
+
+    - name: Install Python Dependencies + Playwright
+      run: |
         pip install --upgrade pip
         pip install -r requirements.txt
-        playwright install chromium
+        python -m playwright install --with-deps chromium
 
-    - name: Debug Installed Versions
+    - name: Debug Versions
       run: |
-        python3 -V
-        which python3
+        python -V
         playwright --version
+        chromium-browser --version || echo "Chromium not directly executable"
 
-    - name: Run WHOOP Automation
+    - name: Run WHOOP Automation Script
       run: python main.py
 
-    - name: Upload Error Screenshot (if exists)
+    - name: Upload Error Screenshot if exists
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: error-screenshots
+        name: error-screenshot
         path: error_screenshot.png
+        if-no-files-found: ignore
+    
+    - name: Upload Debug HTML Snapshot if exists
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-html
+        path: debug_page.html
         if-no-files-found: ignore
