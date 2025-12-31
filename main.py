@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+print("🚀 WHOOP Automation Starting...") 
+
 # WhatsApp API ENV Vars
 WHATSAPP_URL = os.getenv("WHATSAPP_URL")
 WHATSAPP_API_KEY = os.getenv("WHATSAPP_API_KEY")
@@ -112,3 +114,4 @@ scheduler.add_job(job, 'cron', hour=7, minute=0, timezone=ist)
 print("Automation Scheduler Active — waiting for 7:00 AM IST...")
 job()  # Immediate test run
 scheduler.start()
+
