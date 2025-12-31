@@ -30,7 +30,8 @@ def fetch_whoop_data():
 
         try:
             print("STEP 2️⃣ Opening WHOOP login page...")
-            page.goto("https://app.whoop.com/login", timeout=60000)
+            page.goto("https://account.whoop.com/login", timeout=60000)
+            page.wait_for_selector('input[type="email"]', timeout=30000)
 
             # Updated Selectors
             page.fill('input[type="email"]', WHOOP_EMAIL)
@@ -121,3 +122,4 @@ def job():
 
 # Test mode: Run WHOOP once and exit
 job()
+
