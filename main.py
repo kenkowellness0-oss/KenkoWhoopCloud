@@ -107,11 +107,7 @@ def job():
     print("--- Job Finished ---\n")
 
 
-scheduler = BlockingScheduler()
-ist = pytz.timezone("Asia/Kolkata")
-scheduler.add_job(job, 'cron', hour=7, minute=0, timezone=ist)
+# Test mode: Run WHOOP once and exit
+job()
 
-print("Automation Scheduler Active — waiting for 7:00 AM IST...")
-job()  # Immediate test run
-scheduler.start()
 
