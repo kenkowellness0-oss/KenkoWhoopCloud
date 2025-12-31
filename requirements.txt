@@ -1,9 +1,9 @@
 selenium
-requests
-python-dotenv
 apscheduler
 pytz
-pillow
+python-dotenv
+webdriver-manager
+
 
 
 
