@@ -1,8 +1,8 @@
-selenium
+playwright
 apscheduler
 pytz
 python-dotenv
-webdriver-manager
+
 
 
 
