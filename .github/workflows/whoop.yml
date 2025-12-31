@@ -2,8 +2,8 @@ name: WHOOP Daily WhatsApp Automation
 
 on:
   schedule:
-    - cron: "30 1 * * *"   # Runs daily at 7:00 AM IST (1:30 UTC)
-  workflow_dispatch:        # Allow manual runs from Actions tab
+    - cron: "30 1 * * *"   # 7:00 AM IST (1:30 UTC)
+  workflow_dispatch:        # Manual trigger button
 
 jobs:
   whoop-report:
@@ -20,22 +20,31 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: "3.10"
 
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y chromium-browser chromium-chromedriver
         pip install --upgrade pip
         pip install -r requirements.txt
+        playwright install chromium
 
-    - name: Verify browser and driver versions
+    - name: Debug Installed Versions
       run: |
-        chromium-browser --version
-        chromedriver --version
+        python3 -V
+        which python3
+        playwright --version
 
-    - name: Run WHOOP Automation Script
+    - name: Run WHOOP Automation
       run: python main.py
+
+    - name: Upload Error Screenshot (if exists)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: error-screenshots
+        path: error_screenshot.png
+        if-no-files-found: ignore
