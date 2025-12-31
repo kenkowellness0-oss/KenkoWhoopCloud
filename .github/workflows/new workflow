@@ -1,0 +1,41 @@
+name: WHOOP Daily WhatsApp Automation
+
+on:
+  schedule:
+    - cron: "30 1 * * *"   # Runs daily at 7:00 AM IST (1:30 UTC)
+  workflow_dispatch:        # Allow manual runs from Actions tab
+
+jobs:
+  whoop-report:
+    runs-on: ubuntu-latest
+
+    env:
+      WHATSAPP_URL: ${{ secrets.WHATSAPP_URL }}
+      WHATSAPP_API_KEY: ${{ secrets.WHATSAPP_API_KEY }}
+      PHONE_NUMBER: ${{ secrets.PHONE_NUMBER }}
+      WHOOP_EMAIL: ${{ secrets.WHOOP_EMAIL }}
+      WHOOP_PASSWORD: ${{ secrets.WHOOP_PASSWORD }}
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser chromium-chromedriver
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Verify browser and driver versions
+      run: |
+        chromium-browser --version
+        chromedriver --version
+
+    - name: Run WHOOP Automation Script
+      run: python main.py
