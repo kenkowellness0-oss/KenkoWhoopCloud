@@ -2,8 +2,8 @@ name: WHOOP Daily WhatsApp Automation
 
 on:
   schedule:
-    - cron: "30 1 * * *"   # Runs every day at 7:00 AM IST (1:30 UTC)
-  workflow_dispatch:        # Allows manual run
+    - cron: "30 1 * * *"   # Runs daily 7:00 AM IST (01:30 UTC)
+  workflow_dispatch:
 
 jobs:
   whoop-automation:
@@ -25,32 +25,16 @@ jobs:
       with:
         python-version: "3.10"
 
-        - name: Install Required System Dependencies
+    - name: Install System Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          libnss3 \
-          libatk1.0-0 \
-          libatk-bridge2.0-0 \
-          libcups2 \
-          libdrm2 \
-          libxkbcommon0 \
-          libxcomposite1 \
-          libxdamage1 \
-          libxrandr2 \
-          libgbm1 \
-          libasound2t64 \
-          libpangocairo-1.0-0 \
-          libpango-1.0-0 \
-          libcairo2 \
-          libgtk-3-0 \
-          fonts-liberation \
-          xvfb \
-          wget \
-          curl
+          libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+          libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
+          libasound2t64 libpangocairo-1.0-0 libpango-1.0-0 libcairo2 \
+          libgtk-3-0 fonts-liberation xvfb wget curl
 
-
-    - name: Install Python Dependencies + Playwright
+    - name: Install Python & Playwright
       run: |
         pip install --upgrade pip
         pip install -r requirements.txt
@@ -58,22 +42,21 @@ jobs:
 
     - name: Debug Versions
       run: |
-        python -V
+        python3 -V
         playwright --version
-        chromium-browser --version || echo "Chromium not directly executable"
 
-    - name: Run WHOOP Automation Script
+    - name: Run Automation Script
       run: python main.py
 
-    - name: Upload Error Screenshot if exists
+    - name: Upload Error Screenshot
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: error-screenshot
         path: error_screenshot.png
         if-no-files-found: ignore
-    
-    - name: Upload Debug HTML Snapshot if exists
+
+    - name: Upload Debug HTML
       if: always()
       uses: actions/upload-artifact@v4
       with:
